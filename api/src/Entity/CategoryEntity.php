@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\ApiResource;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -15,6 +16,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']]
 )]
+#[UniqueEntity(fields: ['code'], message: 'Code must be unique.')]
 #[ORM\Entity]
 #[ORM\HasLifecycleCallbacks]
 class CategoryEntity
@@ -25,7 +27,7 @@ class CategoryEntity
     #[Groups(['read'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 10)]
+    #[ORM\Column(type: 'string', length: 10, unique: true)]
     #[Assert\NotBlank]
     #[Assert\Length(
         min: 1,
@@ -64,6 +66,7 @@ class CategoryEntity
     {
         return $this->code;
     }
+
     public function setCode(string $code): void
     {
         $this->code = $code;
