@@ -91,7 +91,22 @@ class CategoryEntity
     {
         if (!$this->products->contains($productEntity)) {
             $this->products[] = $productEntity;
-            $productEntity->addCategory($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProduct(ProductEntity $productEntity): self
+    {
+        if ($this->products->contains($productEntity)) {
+            $name = $productEntity->getName();
+
+            foreach ($this->products as $key => $product) {
+                if ($product->getName() === $name) {
+                    unset($this->products[$key]);
+                    return $this;
+                }
+            }
         }
 
         return $this;

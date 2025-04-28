@@ -4,6 +4,14 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use App\Controller\AddCategoryToProductController;
+use App\Controller\RemoveCategoryFromProductController;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
@@ -13,7 +21,78 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     mercure: true,
     normalizationContext: ['groups' => ['read']],
-    denormalizationContext: ['groups' => ['write']]
+    denormalizationContext: ['groups' => ['write']],
+    shortName: 'Product',
+    operations: [
+        new Get(
+            name: 'get_product',
+        ),
+        new GetCollection(
+            name: 'get_products',
+        ),
+        new Post(
+            name: 'create_product',
+        ),
+        new Put(
+            name: 'update_product',
+        ),
+        new Delete(
+            name: 'delete_product',
+        ),
+        // new Patch(
+        //     uriTemplate: 'products/{id}/add-category',
+        //     controller: AddCategoryToProductController::class,
+        //     name: 'add_category_to_product',
+        //     // TODO: add properties to get documentation
+        //     // extraProperties: [
+        //     //     'openapi' => [
+        //     //         'summary' => 'Remove a category from a product',
+        //     //         'description' => 'Removes a specific category from a product by its ID.',
+        //     //         'requestBody' => [
+        //     //             'content' => [
+        //     //                 'application/json' => [
+        //     //                     'schema' => [
+        //     //                         'type' => 'object',
+        //     //                         'properties' => [
+        //     //                             'categoryId' => [
+        //     //                                 'type' => 'integer',
+        //     //                                 'example' => 5,
+        //     //                             ],
+        //     //                         ],
+        //     //                         'required' => ['categoryId'],
+        //     //                     ],
+        //     //                 ],
+        //     //             ],
+        //     //         ],
+        //     //         'responses' => [
+        //     //             '200' => [
+        //     //                 'description' => 'Category removed successfully',
+        //     //                 'content' => [
+        //     //                     'application/json' => [
+        //     //                         'example' => ['success' => true],
+        //     //                     ],
+        //     //                 ],
+        //     //             ],
+        //     //             '404' => [
+        //     //                 'description' => 'Product or Category not found',
+        //     //                 'content' => [
+        //     //                     'application/json' => [
+        //     //                         'example' => ['error' => 'Product or Category not found.'],
+        //     //                     ],
+        //     //                 ],
+        //     //             ],
+        //     //         ],
+        //     //     ],
+        //     // ]
+        // ),
+        // new Delete(
+        //     uriTemplate: 'products/{id}/remove-category',
+        //     controller: RemoveCategoryFromProductController::class,
+        //     read: false,
+        //     name: 'remove_category_from_product',
+        //     // TODO: add properties to get documentation
+        // ),
+    ],
 )]
 #[ORM\Entity]
 #[ORM\HasLifecycleCallbacks]
@@ -111,6 +190,22 @@ class ProductEntity
         if (!$this->categories->contains($categoryEntity)) {
             $this->categories[] = $categoryEntity;
             $categoryEntity->addProduct($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCategory(CategoryEntity $categoryEntity): self
+    {
+        if ($this->categories->contains($categoryEntity)) {
+            $code = $categoryEntity->getCode();
+
+            foreach ($this->categories as $key => $category) {
+                if ($category->getCode() === $code) {
+                    unset($this->categories[$key]);
+                    return $this;
+                }
+            }
         }
 
         return $this;
